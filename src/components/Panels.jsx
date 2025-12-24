@@ -258,7 +258,10 @@ function Panels(props) {
             Title: "Mini Game",
             Link: "/admin/utility/minigame/",
             active: false,
-            hasRight: Auth?.ID === 1 || false,
+            hasRight:
+              (Auth?.Info?.Groups &&
+                Auth?.Info?.Groups.some((x) => x.Title === "Administrator")) ||
+              false,
           },
         ],
         active: false,
