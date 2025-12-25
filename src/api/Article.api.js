@@ -21,6 +21,18 @@ const ArticleAPI = {
         Authorization: `Bearer ${Token}`,
       },
     }),
+  categories: ({ body, Token }) =>
+    http.post(`/api/v3/cate25@get`, JSON.stringify(body), {
+      headers: {
+        Authorization: `Bearer ${Token}`,
+      },
+    }),
+  addEditCategory: ({ body, Token }) =>
+    http.post(`/api/v3/cate25@edit`, JSON.stringify(body), {
+      headers: {
+        Authorization: `Bearer ${Token}`,
+      },
+    }),
 };
 
 export default ArticleAPI;

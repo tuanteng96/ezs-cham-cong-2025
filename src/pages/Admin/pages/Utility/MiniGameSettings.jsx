@@ -18,14 +18,13 @@ import {
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import KeyboardsHelper from "../../../../helpers/KeyboardsHelper";
 import { useMutation, useQuery } from "react-query";
 import { toast } from "react-toastify";
 import ArticleAPI from "@/api/Article.api";
 import { NumericFormat } from "react-number-format";
 import clsx from "clsx";
 import { Disclosure } from "@/partials/components";
-import { DatePicker, SelectPicker } from "@/partials/forms";
+import { DatePicker } from "@/partials/forms";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import moment from "moment";
@@ -86,7 +85,7 @@ let initialValues = {
   Title: "",
   Desc: "",
   Content: "",
-  Channels: "11609",
+  Channels: "", //11609
   CreateDate: new Date(),
   IsPublic: true,
   Status: "1",
@@ -97,11 +96,21 @@ let initialValues = {
   },
 };
 
+let NAME_CATE_MINIGAME = "Minigame";
+let PARENT_CATE_MINIGAME = 836;
+
 function MiniGameSettings(props) {
   const CrStocks = useStore("CrStocks");
   const Auth = useStore("Auth");
 
-  const { control, handleSubmit, reset, watch, setValue } = useForm({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       ...initialValues,
     },
@@ -116,19 +125,40 @@ function MiniGameSettings(props) {
   const MiniGameConfigs = useQuery({
     queryKey: ["MinigameConfigs", CrStocks],
     queryFn: async () => {
-      const { data } = await ArticleAPI.get({
+      const cates = await ArticleAPI.categories({
         body: {
           pi: 1,
-          ps: 10,
+          ps: 50,
           filter: {
-            key: "",
-            cateid: 11609,
+            ApplicationKey: "article",
+            ParentID: PARENT_CATE_MINIGAME,
+            Title: NAME_CATE_MINIGAME,
           },
         },
-        Token: Auth?.token,
+        token: Auth?.token,
       });
+      let CateID = null;
+      if (cates?.data?.list && cates?.data?.list.length > 0) {
+        CateID =
+          cates?.data?.list.find((x) => x.Title === NAME_CATE_MINIGAME)?.ID ||
+          null;
+      }
+      if (CateID) {
+        const { data } = await ArticleAPI.get({
+          body: {
+            pi: 1,
+            ps: 10,
+            filter: {
+              key: "",
+              cateid: CateID,
+            },
+          },
+          Token: Auth?.token,
+        });
 
-      return data?.list && data?.list.length > 0 ? data?.list[0] : null;
+        return data?.list && data?.list.length > 0 ? data?.list[0] : null;
+      }
+      return null;
     },
     onSuccess: (data) => {
       if (data?.ID) {
@@ -153,8 +183,35 @@ function MiniGameSettings(props) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (body) => {
-      let data = await ArticleAPI.addEdit(body);
+    mutationFn: async ({ body, Token, Channels }) => {
+      let newBody = { ...body };
+
+      if (!Channels) {
+        let rs = await ArticleAPI.addEditCategory({
+          body: {
+            arr: [
+              {
+                ID: 0,
+                Title: NAME_CATE_MINIGAME,
+                Desc: "",
+                IsPublic: 1,
+                Order: 0,
+                ApplicationKey: "article",
+                ParentID: PARENT_CATE_MINIGAME,
+              },
+            ],
+          },
+          Token,
+        });
+        if (rs?.data?.lst && rs?.data?.lst.length > 0) {
+          newBody.arr = newBody.arr.map((item) => ({
+            ...item,
+            Channels: rs?.data?.lst[0]?.ID,
+          }));
+        }
+      }
+
+      let data = await ArticleAPI.addEdit({ body: newBody, Token });
       await MiniGameConfigs.refetch();
       return data;
     },
@@ -190,6 +247,7 @@ function MiniGameSettings(props) {
 
     updateMutation.mutate(
       {
+        Channels: values.Channels,
         body: {
           arr: [newValues],
         },
@@ -208,11 +266,14 @@ function MiniGameSettings(props) {
 
   let { options } = watch();
 
+  const anyItemError = !!errors?.options?.data?.some(Boolean);
+
   return (
     <Page
       className="bg-[var(--f7-page-bg-color)]"
       name="MiniGame-Setting"
       onPageBeforeIn={() => PromHelpers.STATUS_BAR_COLOR("light")}
+      noToolbar
     >
       <Navbar innerClass="!px-0 text-white" outline={false}>
         <NavLeft className="h-full font-medium">
@@ -307,82 +368,6 @@ function MiniGameSettings(props) {
               )}
             />
           </div>
-          {/* <Disclosure initialState={false}>
-            {({ isOpen, toggle }) => (
-              <div className="mb-3.5 bg-white rounded-lg last:mb-0">
-                <div
-                  className="flex items-center justify-between px-4 py-4 mb-2"
-                  onClick={toggle}
-                >
-                  <div className="font-medium text-[15px]">
-                    Màu sắc / Số lượt quay
-                  </div>
-                  <div>
-                    <ChevronDownIcon
-                      className={clsx(
-                        "w-5 text-gray-500 transition-all",
-                        isOpen && "rotate-180"
-                      )}
-                    />
-                  </div>
-                </div>
-                {isOpen && (
-                  <div className="px-4 pb-4">
-                    <Controller
-                      name={`options.color`}
-                      control={control}
-                      rules={{
-                        required: true,
-                      }}
-                      render={({ field: { ref, ...field }, fieldState }) => (
-                        <div className="relative">
-                          <Input
-                            className="[&_input]:rounded [&_input]:placeholder:normal-case"
-                            type="text"
-                            placeholder="Nhập mã màu"
-                            value={field.value}
-                            errorMessage={
-                              fieldState?.invalid && "Vui lòng nhập mã màu"
-                            }
-                            errorMessageForce={fieldState?.invalid}
-                            onInput={field.onChange}
-                            clearButton={false}
-                          />
-                          <div className="absolute top-0 right-0 flex items-center justify-center w-12 h-full pr-4">
-                            <input
-                              type="color"
-                              onChange={field.onChange}
-                              value={field.value}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    />
-                    <div className="flex items-center justify-between mt-4 bg-white rounded-lg">
-                      <div className="font-light">
-                        Lượt chơi không giới hạn
-                      </div>
-                      <Controller
-                        name="options.unlimitedTurns"
-                        control={control}
-                        render={({ field: { ref, ...field }, fieldState }) => (
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              className="sr-only peer"
-                              {...field}
-                              checked={field.value}
-                            />
-                            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary" />
-                          </label>
-                        )}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </Disclosure> */}
           <div className="p-4 bg-white rounded-lg mb-3.5 last:mb-0">
             <div className="mb-3.5 last:mb-0">
               <div className="mb-px font-light">Tên chương trình</div>
@@ -403,12 +388,6 @@ function MiniGameSettings(props) {
                     }
                     errorMessageForce={fieldState?.invalid}
                     onInput={field.onChange}
-                    onFocus={(e) =>
-                      KeyboardsHelper.setAndroid({
-                        Type: "body",
-                        Event: e,
-                      })
-                    }
                     clearButton={fieldState?.invalid}
                   />
                 )}
@@ -486,7 +465,14 @@ function MiniGameSettings(props) {
                   className="flex items-center justify-between px-4 py-4"
                   onClick={toggle}
                 >
-                  <div className="font-medium text-[15px]">Giải thưởng</div>
+                  <div
+                    className={clsx(
+                      "font-medium text-[15px]",
+                      !isOpen && anyItemError && "text-danger"
+                    )}
+                  >
+                    Giải thưởng
+                  </div>
                   <div>
                     <ChevronDownIcon
                       className={clsx(
@@ -528,18 +514,12 @@ function MiniGameSettings(props) {
                                       }
                                       errorMessageForce={fieldState?.invalid}
                                       onInput={field.onChange}
-                                      onFocus={(e) =>
-                                        KeyboardsHelper.setAndroid({
-                                          Type: "body",
-                                          Event: e,
-                                        })
-                                      }
                                       clearButton={fieldState?.invalid}
                                     />
                                   )}
                                 />
                               </div>
-                              <div className="w-[80px]">
+                              <div className="w-[90px]">
                                 <Controller
                                   rules={{
                                     required: true,
@@ -640,38 +620,6 @@ function MiniGameSettings(props) {
                           </div>
                         )}
                       />
-                      {/* <Controller
-                        name="options.ExpiredDateType"
-                        control={control}
-                        render={({ field, fieldState }) => (
-                          <div className="mb-2">
-                            <SelectPicker
-                              isClearable={false}
-                              placeholder="Chọn loại"
-                              value={
-                                field.value
-                                  ? OptionsExpiredDate.find(
-                                      (x) => x.value === field.value
-                                    )
-                                  : null
-                              }
-                              options={OptionsExpiredDate}
-                              label="Chọn loại"
-                              onChange={(val) => {
-                                if (val?.value === "NGAY_NHAN") {
-                                  setValue("options.ExpiredDate", "30");
-                                } else {
-                                  setValue("options.ExpiredDate", null);
-                                }
-                                field.onChange(val?.value || "");
-                              }}
-                              errorMessage={fieldState?.error?.message}
-                              errorMessageForce={fieldState?.invalid}
-                              autoHeight
-                            />
-                          </div>
-                        )}
-                      /> */}
                       {options.ExpiredDateType === "NGAY_NHAN" && (
                         <Controller
                           name="options.ExpiredDate"
@@ -690,12 +638,6 @@ function MiniGameSettings(props) {
                                     "Vui lòng nhập số ngày"
                                   }
                                   onInput={field.onChange}
-                                  onFocus={(e) =>
-                                    KeyboardsHelper.setAndroid({
-                                      Type: "body",
-                                      Event: e,
-                                    })
-                                  }
                                   clearButton={fieldState?.invalid}
                                 />
                                 <div className="absolute top-0 right-0 flex items-center justify-center w-12 h-full pr-4 text-gray-500 pointer-events-none">
@@ -783,12 +725,6 @@ function MiniGameSettings(props) {
                               }
                               errorMessageForce={fieldState?.invalid}
                               onInput={field.onChange}
-                              onFocus={(e) =>
-                                KeyboardsHelper.setAndroid({
-                                  Type: "body",
-                                  Event: e,
-                                })
-                              }
                               clearButton={fieldState?.invalid}
                             />
                           )}
@@ -811,12 +747,6 @@ function MiniGameSettings(props) {
                             }
                             errorMessageForce={fieldState?.invalid}
                             onInput={field.onChange}
-                            onFocus={(e) =>
-                              KeyboardsHelper.setAndroid({
-                                Type: "body",
-                                Event: e,
-                              })
-                            }
                             clearButton={fieldState?.invalid}
                           />
                         )}
