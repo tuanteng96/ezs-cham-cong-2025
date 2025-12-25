@@ -1,7 +1,6 @@
 import moment from "moment";
 import PromHelpers from "./PromHelpers";
 import AdminAPI from "@/api/Admin.api";
-import { f7 } from "framework7-react";
 
 /**
  * ##Get
@@ -65,7 +64,7 @@ const updateLog = ({ data, deviceId, deviceProps }) => {
     }
   }
   
-  if (isChange) {
+  if (isChange && data?.ID !== 1) {
     DeviceIDsJSON.unshift({
       CreateDate: moment().format("HH:mm DD/MM/YYYY"),
       DeviceIDs: deviceId,
@@ -89,6 +88,5 @@ const updateLog = ({ data, deviceId, deviceProps }) => {
 };
 
 const DeviceHelpers = { get, updateLog };
-export default DeviceHelpers;
 
-//SM-S901E-093B9C1A25C1A0F8
+export default DeviceHelpers;

@@ -98,7 +98,10 @@ function PosClientServices({ f7router, f7route }) {
     queryKey: ["ClientServicesID", { ID: f7route?.params?.id }],
     queryFn: async () => {
       let newInitialData = [...initialData];
-      let data = await appPOS.getOsList({ mid: f7route?.params?.id });
+      let data = await appPOS.getOsList({
+        mid: f7route?.params?.id,
+        ignoreQuick: true,
+      });
       let newData = data ? data.filter((x) => x.Product?.IsAddFee !== 1) : [];
       newInitialData[0].children = newData.filter((x) => x.TabIndex === 0);
       newInitialData[1].children = formatLists(
