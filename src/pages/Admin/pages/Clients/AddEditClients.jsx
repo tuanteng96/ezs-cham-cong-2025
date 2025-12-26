@@ -959,31 +959,33 @@ function AddEditClients({ f7router, f7route }) {
                             )}
                           />
                         </div>
-                        <div className="mb-3.5 last:mb-0">
-                          <div className="mb-px">Ghi chú lịch trình</div>
-                          <Controller
-                            name="Book.Desc"
-                            control={control}
-                            render={({ field, fieldState }) => (
-                              <Input
-                                className="[&_textarea]:rounded [&_textarea]:placeholder:normal-case"
-                                type="textarea"
-                                placeholder="Nhập ghi chú"
-                                value={field.value}
-                                errorMessage={fieldState?.error?.message}
-                                errorMessageForce={fieldState?.invalid}
-                                onInput={field.onChange}
-                                onFocus={(e) =>
-                                  KeyboardsHelper.setAndroid({
-                                    Type: "body",
-                                    Event: e,
-                                  })
-                                }
-                                resizable
-                              />
-                            )}
-                          />
-                        </div>
+                        {Brand?.Global?.Admin?.ghi_chu_lich_trinh && (
+                          <div className="mb-3.5 last:mb-0">
+                            <div className="mb-px">Ghi chú lịch trình</div>
+                            <Controller
+                              name="Book.Desc"
+                              control={control}
+                              render={({ field, fieldState }) => (
+                                <Input
+                                  className="[&_textarea]:rounded [&_textarea]:placeholder:normal-case"
+                                  type="textarea"
+                                  placeholder="Nhập ghi chú"
+                                  value={field.value}
+                                  errorMessage={fieldState?.error?.message}
+                                  errorMessageForce={fieldState?.invalid}
+                                  onInput={field.onChange}
+                                  onFocus={(e) =>
+                                    KeyboardsHelper.setAndroid({
+                                      Type: "body",
+                                      Event: e,
+                                    })
+                                  }
+                                  resizable
+                                />
+                              )}
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
