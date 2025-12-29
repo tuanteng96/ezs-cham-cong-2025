@@ -207,7 +207,7 @@ function PosClassSchedule({ f7router }) {
           value: CrStocks?.ID,
         }
       : null,
-    isClassOpen: false,
+    isClassOpen: true,
     Key: "",
     Time: null,
     SortToTime: true,
