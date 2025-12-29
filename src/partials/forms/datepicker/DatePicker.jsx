@@ -109,7 +109,7 @@ function DatePicker({
 
         <input
           className={clsx(
-            "no-keyboard w-full py-3 border transition focus:border-primary font-normal shadow-[0_4px_6px_0_rgba(16,25,40,.06)] rounded",
+            "no-keyboard w-full py-3 border transition focus:border-primary font-normal shadow-[0_4px_6px_0_rgba(16,25,40,.06)] rounded capitalize",
             errorMessageForce ? "border-danger" : "border-[#d5d7da]",
             icon ? "pr-4 pl-10" : "px-4"
           )}

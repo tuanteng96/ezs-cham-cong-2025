@@ -90,7 +90,7 @@ function PickerClassScheduleFilter({ children, filters, onChange }) {
                         control={control}
                         render={({ field, fieldState }) => (
                           <DatePicker
-                            format="DD-MM-YYYY"
+                            format="dddd, [ngày] DD-MM-YYYY"
                             errorMessage={fieldState?.error?.message}
                             errorMessageForce={fieldState?.invalid}
                             value={field.value}

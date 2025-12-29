@@ -38,8 +38,8 @@ let RenderItems = ({ item, onOpenClass, filters }) => {
           <div className="font-semibold text-[15px] text-primary">
             {item.Class.Title}
           </div>
-          <div className="font-medium text-gray-700 font-lato">
-            Ngày {moment(filters.CrDate).format("DD-MM-YYYY")}
+          <div className="text-gray-700 capitalize">
+            {moment(filters.CrDate).format("dddd, [Ngày] DD-MM-YYYY")}
           </div>
         </div>
         <div
@@ -123,8 +123,8 @@ let RenderSortTimeItems = ({ item, onOpenClass, filters }) => {
             <span className="px-1">-</span>
             {item.TimeEnd}
           </div>
-          <div className="font-medium text-gray-700 font-lato">
-            Ngày {moment(filters.CrDate).format("DD-MM-YYYY")}
+          <div className="text-gray-700 capitalize">
+            {moment(filters.CrDate).format("dddd, [Ngày] DD-MM-YYYY")}
           </div>
         </div>
         <div
@@ -210,7 +210,7 @@ function PosClassSchedule({ f7router }) {
     isClassOpen: false,
     Key: "",
     Time: null,
-    SortToTime: false,
+    SortToTime: true,
   });
 
   const { data, refetch, isLoading } = useQuery({
